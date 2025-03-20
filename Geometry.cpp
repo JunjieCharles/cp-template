@@ -1,56 +1,57 @@
 #include <bits/stdc++.h>
-using namespace std;
+using std::numeric_limits;
+using std::abs, std::max, std::min, std::swap;
+using std::pair, std::make_pair;
+using std::tuple, std::make_tuple;
+using std::vector, std::deque;
+using std::set, std::multiset;
 
-// using point_t=long long;
-using point_t=long double;  //全局数据类型
+using T=long double;  //全局数据类型
 
-constexpr point_t eps=1e-8;
-constexpr point_t INF=numeric_limits<point_t>::max();
-constexpr long double PI=3.1415926535897932384l;
+constexpr T eps=1e-8;
+constexpr T INF=numeric_limits<T>::max();
+constexpr T PI=3.1415926535897932384l;
 
 // 点与向量
-template<typename T> struct point
+struct Point
 {
     T x,y;
 
-    bool operator==(const point &a) const {return (abs(x-a.x)<=eps && abs(y-a.y)<=eps);}
-    bool operator<(const point &a) const {if (abs(x-a.x)<=eps) return y<a.y-eps; return x<a.x-eps;}
-    bool operator>(const point &a) const {return !(*this<a || *this==a);}
-    point operator+(const point &a) const {return {x+a.x,y+a.y};}
-    point operator-(const point &a) const {return {x-a.x,y-a.y};}
-    point operator-() const {return {-x,-y};}
-    point operator*(const T k) const {return {k*x,k*y};}
-    point operator/(const T k) const {return {x/k,y/k};}
-    T operator*(const point &a) const {return x*a.x+y*a.y;}  // 点积
-    T operator^(const point &a) const {return x*a.y-y*a.x;}  // 叉积，注意优先级
-    int toleft(const point &a) const {const auto t=(*this)^a; return (t>eps)-(t<-eps);}  // to-left 测试
+    bool operator==(const Point &a) const {return (abs(x-a.x)<=eps && abs(y-a.y)<=eps);}
+    bool operator<(const Point &a) const {if (abs(x-a.x)<=eps) return y<a.y-eps; return x<a.x-eps;}
+    bool operator>(const Point &a) const {return !(*this<a || *this==a);}
+    Point operator+(const Point &a) const {return {x+a.x,y+a.y};}
+    Point operator-(const Point &a) const {return {x-a.x,y-a.y};}
+    Point operator-() const {return {-x,-y};}
+    Point operator*(const T k) const {return {k*x,k*y};}
+    Point operator/(const T k) const {return {x/k,y/k};}
+    T operator*(const Point &a) const {return x*a.x+y*a.y;}  // 点积
+    T operator^(const Point &a) const {return x*a.y-y*a.x;}  // 叉积，注意优先级
+    int toleft(const Point &a) const {const auto t=(*this)^a; return (t>eps)-(t<-eps);}  // to-left 测试
     T len2() const {return (*this)*(*this);}  // 向量长度的平方
-    T dis2(const point &a) const {return (a-(*this)).len2();}  // 两点距离的平方
+    T dis2(const Point &a) const {return (a-(*this)).len2();}  // 两点距离的平方
+    int quad() const // 象限判断 0:原点 1:x轴正 2:第一象限 3:y轴正 4:第二象限 5:x轴负 6:第三象限 7:y轴负 8:第四象限
+    {
+        if (abs(x)<=eps && abs(y)<=eps) return 0;
+        if (abs(y)<=eps) return x>eps ? 1 : 5;
+        if (abs(x)<=eps) return y>eps ? 3 : 7;
+        return y>eps ? (x>eps ? 2 : 4) : (x>eps ? 8 : 6);
+    }
 
-    // 涉及浮点数
-    long double len() const {return sqrtl(len2());}  // 向量长度
-    long double dis(const point &a) const {return sqrtl(dis2(a));}  // 两点距离
-    long double ang(const point &a) const {return acosl(max(-1.0l,min(1.0l,((*this)*a)/(len()*a.len()))));}  // 向量夹角
-    point rot(const long double rad) const {return {x*cos(rad)-y*sin(rad),x*sin(rad)+y*cos(rad)};}  // 逆时针旋转（给定角度）
-    point rot(const long double cosr,const long double sinr) const {return {x*cosr-y*sinr,x*sinr+y*cosr};}  // 逆时针旋转（给定角度的正弦与余弦）
+    // 必须用浮点数
+    T len() const {return sqrtl(len2());}  // 向量长度
+    T dis(const Point &a) const {return sqrtl(dis2(a));}  // 两点距离
+    T ang(const Point &a) const {return acosl(max(-1.0l,min(1.0l,((*this)*a)/(len()*a.len()))));}  // 向量夹角
+    Point rot(const T rad) const {return {x*cos(rad)-y*sin(rad),x*sin(rad)+y*cos(rad)};}  // 逆时针旋转（给定角度）
+    Point rot(const T cosr,const T sinr) const {return {x*cosr-y*sinr,x*sinr+y*cosr};}  // 逆时针旋转（给定角度的正弦与余弦）
 };
 
-using Point=point<point_t>;
-
 // 极角排序
-struct argcmp
+struct Argcmp
 {
     bool operator()(const Point &a,const Point &b) const
     {
-        const auto quad=[](const Point &a)
-        {
-            if (a.y<-eps) return 1;
-            if (a.y>eps) return 4;
-            if (a.x<-eps) return 5;
-            if (a.x>eps) return 3;
-            return 2;
-        };
-        const int qa=quad(a),qb=quad(b);
+        const int qa=a.quad(),qb=b.quad();
         if (qa!=qb) return qa<qb;
         const auto t=a^b;
         // if (abs(t)<=eps) return a*a<b*b-eps;  // 不同长度的向量需要分开
@@ -59,38 +60,36 @@ struct argcmp
 };
 
 // 直线
-template<typename T> struct line
+struct Line
 {
-    point<T> p,v;  // p 为直线上一点，v 为方向向量
+    Point p,v;  // p 为直线上一点，v 为方向向量
 
-    bool operator==(const line &a) const {return v.toleft(a.v)==0 && v.toleft(p-a.p)==0;}
-    int toleft(const point<T> &a) const {return v.toleft(a-p);}  // to-left 测试
-    bool operator<(const line &a) const  // 半平面交算法定义的排序
+    bool operator==(const Line &a) const {return v.toleft(a.v)==0 && v.toleft(p-a.p)==0;}
+    int toleft(const Point &a) const {return v.toleft(a-p);}  // to-left 测试
+    bool operator<(const Line &a) const  // 半平面交算法定义的排序
     {
         if (abs(v^a.v)<=eps && v*a.v>=-eps) return toleft(a.p)==-1;
-        return argcmp()(v,a.v);
+        return Argcmp()(v,a.v);
     }
 
-    // 涉及浮点数
-    point<T> inter(const line &a) const {return p+v*((a.v^(p-a.p))/(v^a.v));}  // 直线交点
-    long double dis(const point<T> &a) const {return abs(v^(a-p))/v.len();}  // 点到直线距离
-    point<T> proj(const point<T> &a) const {return p+v*((v*(a-p))/(v*v));}  // 点在直线上的投影
+    // 必须用浮点数
+    Point inter(const Line &a) const {return p+v*((a.v^(p-a.p))/(v^a.v));}  // 直线交点
+    T dis(const Point &a) const {return abs(v^(a-p))/v.len();}  // 点到直线距离
+    Point proj(const Point &a) const {return p+v*((v*(a-p))/(v*v));}  // 点在直线上的投影
 };
 
-using Line=line<point_t>;
-
 //线段
-template<typename T> struct segment
+struct Segment
 {
-    point<T> a,b;
+    Point a,b;
 
-    bool operator<(const segment &s) const {return make_pair(a,b)<make_pair(s.a,s.b);}
+    bool operator<(const Segment &s) const {return make_pair(a,b)<make_pair(s.a,s.b);}
 
     // 判定性函数建议在整数域使用
 
     // 判断点是否在线段上
     // -1 点在线段端点 | 0 点不在线段上 | 1 点严格在线段上
-    int is_on(const point<T> &p) const  
+    int is_on(const Point &p) const  
     {
         if (p==a || p==b) return -1;
         return (p-a).toleft(p-b)==0 && (p-a)*(p-b)<-eps;
@@ -98,7 +97,7 @@ template<typename T> struct segment
 
     // 判断线段直线是否相交
     // -1 直线经过线段端点 | 0 线段和直线不相交 | 1 线段和直线严格相交
-    int is_inter(const line<T> &l) const
+    int is_inter(const Line &l) const
     {
         if (l.toleft(a)==0 || l.toleft(b)==0) return -1;
         return l.toleft(a)!=l.toleft(b);
@@ -106,35 +105,33 @@ template<typename T> struct segment
     
     // 判断两线段是否相交
     // -1 在某一线段端点处相交 | 0 两线段不相交 | 1 两线段严格相交
-    int is_inter(const segment<T> &s) const
+    int is_inter(const Segment &s) const
     {
         if (is_on(s.a) || is_on(s.b) || s.is_on(a) || s.is_on(b)) return -1;
-        const line<T> l{a,b-a},ls{s.a,s.b-s.a};
+        const Line l{a,b-a},ls{s.a,s.b-s.a};
         return l.toleft(s.a)*l.toleft(s.b)==-1 && ls.toleft(a)*ls.toleft(b)==-1;
     }
 
-    // 点到线段距离
-    long double dis(const point<T> &p) const
+    // 点到线段距离（必须用浮点数）
+    T dis(const Point &p) const
     {
         if ((p-a)*(b-a)<-eps || (p-b)*(a-b)<-eps) return min(p.dis(a),p.dis(b));
-        const line<T> l{a,b-a};
+        const Line l{a,b-a};
         return l.dis(p);
     }
 
-    // 两线段间距离
-    long double dis(const segment<T> &s) const
+    // 两线段间距离（必须用浮点数）
+    T dis(const Segment &s) const
     {
         if (is_inter(s)) return 0;
         return min({dis(s.a),dis(s.b),s.dis(a),s.dis(b)});
     }
 };
 
-using Segment=segment<point_t>;
-
 // 多边形
-template<typename T> struct polygon
+struct Polygon
 {
-    vector<point<T>> p;  // 以逆时针顺序存储
+    vector<Point> p;  // 以逆时针顺序存储
 
     size_t nxt(const size_t i) const {return i==p.size()-1?0:i+1;}
     size_t pre(const size_t i) const {return i==0?p.size()-1:i-1;}
@@ -142,12 +139,12 @@ template<typename T> struct polygon
     // 回转数
     // 返回值第一项表示点是否在多边形边上
     // 对于狭义多边形，回转数为 0 表示点在多边形外，否则点在多边形内
-    pair<bool,int> winding(const point<T> &a) const
+    pair<bool,int> winding(const Point &a) const
     {
         int cnt=0;
         for (size_t i=0;i<p.size();i++)
         {
-            const point<T> u=p[i],v=p[nxt(i)];
+            const Point u=p[i],v=p[nxt(i)];
             if (abs((a-u)^(a-v))<=eps && (a-u)*(a-v)<=eps) return {true,0};
             if (abs(u.y-v.y)<=eps) continue;
             const Line uv={u,v-u};
@@ -169,32 +166,30 @@ template<typename T> struct polygon
     }
 
     // 多边形的周长
-    long double circ() const
+    T circ() const
     {
-        long double sum=0;
+        T sum=0;
         for (size_t i=0;i<p.size();i++) sum+=p[i].dis(p[nxt(i)]);
         return sum;
     }
 };
 
-using Polygon=polygon<point_t>;
-
 //凸多边形
-template<typename T> struct convex: polygon<T>
+struct Convex: Polygon
 {
     // 闵可夫斯基和
-    convex operator+(const convex &c) const  
+    Convex operator+(const Convex &c) const  
     {
         const auto &p=this->p;
         vector<Segment> e1(p.size()),e2(c.p.size()),edge(p.size()+c.p.size());
-        vector<point<T>> res; res.reserve(p.size()+c.p.size());
-        const auto cmp=[](const Segment &u,const Segment &v) {return argcmp()(u.b-u.a,v.b-v.a);};
+        vector<Point> res; res.reserve(p.size()+c.p.size());
+        const auto cmp=[](const Segment &u,const Segment &v) {return Argcmp()(u.b-u.a,v.b-v.a);};
         for (size_t i=0;i<p.size();i++) e1[i]={p[i],p[this->nxt(i)]};
         for (size_t i=0;i<c.p.size();i++) e2[i]={c.p[i],c.p[c.nxt(i)]};
         rotate(e1.begin(),min_element(e1.begin(),e1.end(),cmp),e1.end());
         rotate(e2.begin(),min_element(e2.begin(),e2.end(),cmp),e2.end());
         merge(e1.begin(),e1.end(),e2.begin(),e2.end(),edge.begin(),cmp);
-        const auto check=[](const vector<point<T>> &res,const point<T> &u)
+        const auto check=[](const vector<Point> &res,const Point &u)
         {
             const auto back1=res.back(),back2=*prev(res.end(),2);
             return (back1-back2).toleft(u-back1)==0 && (back1-back2)*(u-back1)>=-eps;
@@ -217,7 +212,7 @@ template<typename T> struct convex: polygon<T>
         const auto &p=this->p;
         if (p.size()==1) return 0;
         if (p.size()==2) return p[0].dis2(p[1]);
-        const auto area=[](const point<T> &u,const point<T> &v,const point<T> &w){return (w-u)^(w-v);};
+        const auto area=[](const Point &u,const Point &v,const Point &w){return (w-u)^(w-v);};
         T ans=0;
         for (size_t i=0,j=1;i<p.size();i++)
         {
@@ -235,18 +230,18 @@ template<typename T> struct convex: polygon<T>
     // 判断点是否在凸多边形内
     // 复杂度 O(logn)
     // -1 点在多边形边上 | 0 点在多边形外 | 1 点在多边形内
-    int is_in(const point<T> &a) const
+    int is_in(const Point &a) const
     {
         const auto &p=this->p;
         if (p.size()==1) return a==p[0]?-1:0;
-        if (p.size()==2) return segment<T>{p[0],p[1]}.is_on(a)?-1:0; 
+        if (p.size()==2) return Segment{p[0],p[1]}.is_on(a)?-1:0; 
         if (a==p[0]) return -1;
         if ((p[1]-p[0]).toleft(a-p[0])==-1 || (p.back()-p[0]).toleft(a-p[0])==1) return 0;
-        const auto cmp=[&](const point<T> &u,const point<T> &v){return (u-p[0]).toleft(v-p[0])==1;};
+        const auto cmp=[&](const Point &u,const Point &v){return (u-p[0]).toleft(v-p[0])==1;};
         const size_t i=lower_bound(p.begin()+1,p.end(),a,cmp)-p.begin();
-        if (i==1) return segment<T>{p[0],p[i]}.is_on(a)?-1:0;
-        if (i==p.size()-1 && segment<T>{p[0],p[i]}.is_on(a)) return -1;
-        if (segment<T>{p[i-1],p[i]}.is_on(a)) return -1;
+        if (i==1) return Segment{p[0],p[i]}.is_on(a)?-1:0;
+        if (i==p.size()-1 && Segment{p[0],p[i]}.is_on(a)) return -1;
+        if (Segment{p[i-1],p[i]}.is_on(a)) return -1;
         return (p[i]-p[i-1]).toleft(a-p[i-1])>0;
     }
 
@@ -259,7 +254,7 @@ template<typename T> struct convex: polygon<T>
         const auto check=[&](const size_t i){return dir(p[i]).toleft(p[this->nxt(i)]-p[i])>=0;};
         const auto dir0=dir(p[0]); const auto check0=check(0);
         if (!check0 && check(p.size()-1)) return 0;
-        const auto cmp=[&](const point<T> &v)
+        const auto cmp=[&](const Point &v)
         {
             const size_t vi=&v-p.data();
             if (vi==0) return 1;
@@ -274,16 +269,16 @@ template<typename T> struct convex: polygon<T>
     // 过凸多边形外一点求凸多边形的切线，返回切点下标
     // 复杂度 O(logn)
     // 必须保证点在多边形外
-    pair<size_t,size_t> tangent(const point<T> &a) const
+    pair<size_t,size_t> tangent(const Point &a) const
     {
-        const size_t i=extreme([&](const point<T> &u){return u-a;});
-        const size_t j=extreme([&](const point<T> &u){return a-u;});
+        const size_t i=extreme([&](const Point &u){return u-a;});
+        const size_t j=extreme([&](const Point &u){return a-u;});
         return {i,j};
     }
 
     // 求平行于给定直线的凸多边形的切线，返回切点下标
     // 复杂度 O(logn)
-    pair<size_t,size_t> tangent(const line<T> &a) const
+    pair<size_t,size_t> tangent(const Line &a) const
     {
         const size_t i=extreme([&](...){return a.v;});
         const size_t j=extreme([&](...){return -a.v;});
@@ -291,27 +286,25 @@ template<typename T> struct convex: polygon<T>
     }
 };
 
-using Convex=convex<point_t>;
-
 // 圆
 struct Circle
 {
     Point c;
-    long double r;
+    T r; // 一般来说必须用浮点数
 
     bool operator==(const Circle &a) const {return c==a.c && abs(r-a.r)<=eps;}
-    long double circ() const {return 2*PI*r;}  // 周长
-    long double area() const {return PI*r*r;}  // 面积
+    T circ() const {return 2*PI*r;}  // 周长
+    T area() const {return PI*r*r;}  // 面积
 
     // 点与圆的关系
     // -1 圆上 | 0 圆外 | 1 圆内
-    int is_in(const Point &p) const {const long double d=p.dis(c); return abs(d-r)<=eps?-1:d<r-eps;}
+    int is_in(const Point &p) const {const T d=p.dis(c); return abs(d-r)<=eps?-1:d<r-eps;}
 
     // 直线与圆关系
     // 0 相离 | 1 相切 | 2 相交
     int relation(const Line &l) const
     {
-        const long double d=l.dis(c);
+        const T d=l.dis(c);
         if (d>r+eps) return 0;
         if (abs(d-r)<=eps) return 1;
         return 2;
@@ -322,7 +315,7 @@ struct Circle
     int relation(const Circle &a) const
     {
         if (*this==a) return -1;
-        const long double d=c.dis(a.c);
+        const T d=c.dis(a.c);
         if (d>r+a.r+eps) return 0;
         if (abs(d-r-a.r)<=eps) return 1;
         if (abs(d-abs(r-a.r))<=eps) return 3;
@@ -333,19 +326,19 @@ struct Circle
     // 直线与圆的交点
     vector<Point> inter(const Line &l) const
     {
-        const long double d=l.dis(c);
+        const T d=l.dis(c);
         const Point p=l.proj(c);
         const int t=relation(l);
         if (t==0) return vector<Point>();
         if (t==1) return vector<Point>{p};
-        const long double k=sqrt(r*r-d*d);
+        const T k=sqrt(r*r-d*d);
         return vector<Point>{p-(l.v/l.v.len())*k,p+(l.v/l.v.len())*k};
     }
 
     // 圆与圆交点
     vector<Point> inter(const Circle &a) const
     {
-        const long double d=c.dis(a.c);
+        const T d=c.dis(a.c);
         const int t=relation(a);
         if (t==-1 || t==0 || t==4) return vector<Point>();
         Point e=a.c-c; e=e/e.len()*r;
@@ -354,21 +347,21 @@ struct Circle
             if (r*r+d*d-a.r*a.r>=-eps) return vector<Point>{c+e};
             return vector<Point>{c-e};
         }
-        const long double costh=(r*r+d*d-a.r*a.r)/(2*r*d),sinth=sqrt(1-costh*costh);
+        const T costh=(r*r+d*d-a.r*a.r)/(2*r*d),sinth=sqrt(1-costh*costh);
         return vector<Point>{c+e.rot(costh,-sinth),c+e.rot(costh,sinth)};
     }
 
     // 圆与圆交面积
-    long double inter_area(const Circle &a) const
+    T inter_area(const Circle &a) const
     {
-        const long double d=c.dis(a.c);
+        const T d=c.dis(a.c);
         const int t=relation(a);
         if (t==-1) return area();
         if (t<2) return 0;
         if (t>2) return min(area(),a.area());
-        const long double costh1=(r*r+d*d-a.r*a.r)/(2*r*d),costh2=(a.r*a.r+d*d-r*r)/(2*a.r*d);
-        const long double sinth1=sqrt(1-costh1*costh1),sinth2=sqrt(1-costh2*costh2);
-        const long double th1=acos(costh1),th2=acos(costh2);
+        const T costh1=(r*r+d*d-a.r*a.r)/(2*r*d),costh2=(a.r*a.r+d*d-r*r)/(2*a.r*d);
+        const T sinth1=sqrt(1-costh1*costh1),sinth2=sqrt(1-costh2*costh2);
+        const T th1=acos(costh1),th2=acos(costh2);
         return r*r*(th1-costh1*sinth1)+a.r*a.r*(th2-costh2*sinth2);
     }
 
@@ -383,7 +376,7 @@ struct Circle
             return vector<Line>{{a,v}};
         }
         Point e=a-c; e=e/e.len()*r;
-        const long double costh=r/c.dis(a),sinth=sqrt(1-costh*costh);
+        const T costh=r/c.dis(a),sinth=sqrt(1-costh*costh);
         const Point t1=c+e.rot(costh,-sinth),t2=c+e.rot(costh,sinth);
         return vector<Line>{{a,t1-a},{a,t2-a}};
     }
@@ -399,18 +392,18 @@ struct Circle
             const Point p=inter(a)[0],v={-(a.c-c).y,(a.c-c).x};
             lines.push_back({p,v});
         }
-        const long double d=c.dis(a.c);
+        const T d=c.dis(a.c);
         const Point e=(a.c-c)/(a.c-c).len();
         if (t<=2)
         {
-            const long double costh=(r-a.r)/d,sinth=sqrt(1-costh*costh);
+            const T costh=(r-a.r)/d,sinth=sqrt(1-costh*costh);
             const Point d1=e.rot(costh,-sinth),d2=e.rot(costh,sinth);
             const Point u1=c+d1*r,u2=c+d2*r,v1=a.c+d1*a.r,v2=a.c+d2*a.r;
             lines.push_back({u1,v1-u1}); lines.push_back({u2,v2-u2});
         }
         if (t==0)
         {
-            const long double costh=(r+a.r)/d,sinth=sqrt(1-costh*costh);
+            const T costh=(r+a.r)/d,sinth=sqrt(1-costh*costh);
             const Point d1=e.rot(costh,-sinth),d2=e.rot(costh,sinth);
             const Point u1=c+d1*r,u2=c+d2*r,v1=a.c-d1*a.r,v2=a.c-d2*a.r;
             lines.push_back({u1,v1-u1}); lines.push_back({u2,v2-u2});
@@ -419,37 +412,36 @@ struct Circle
     }
 
     // 圆的反演
-    tuple<int,Circle,Line> inverse(const Line &l) const
+    // auto result = circle.inverse(line);
+    // if (std::holds_alternative<Circle>(result))
+    // Circle c = std::get<Circle>(result);
+    std::variant<Circle, Line> inverse(const Line &l) const
     {
-        const Circle null_c={{0.0,0.0},0.0};
-        const Line null_l={{0.0,0.0},{0.0,0.0}};
-        if (l.toleft(c)==0) return {2,null_c,l};
+        if (l.toleft(c)==0) return l;
         const Point v=l.toleft(c)==1?Point{l.v.y,-l.v.x}:Point{-l.v.y,l.v.x};
-        const long double d=r*r/l.dis(c);
+        const T d=r*r/l.dis(c);
         const Point p=c+v/v.len()*d;
-        return {1,{(c+p)/2,d/2},null_l};
+        return Circle{(c+p)/2,d/2};
     }
     
-    tuple<int,Circle,Line> inverse(const Circle &a) const
+    std::variant<Circle, Line> inverse(const Circle &a) const
     {
-        const Circle null_c={{0.0,0.0},0.0};
-        const Line null_l={{0.0,0.0},{0.0,0.0}};
         const Point v=a.c-c;
         if (a.is_in(c)==-1)
         {
-            const long double d=r*r/(a.r+a.r);
+            const T d=r*r/(a.r+a.r);
             const Point p=c+v/v.len()*d;
-            return {2,null_c,{p,{-v.y,v.x}}};
+            return Line{p,{-v.y,v.x}};
         }
-        if (c==a.c) return {1,{c,r*r/a.r},null_l};
-        const long double d1=r*r/(c.dis(a.c)-a.r),d2=r*r/(c.dis(a.c)+a.r);
+        if (c==a.c) return Circle{c,r*r/a.r};
+        const T d1=r*r/(c.dis(a.c)-a.r),d2=r*r/(c.dis(a.c)+a.r);
         const Point p=c+v/v.len()*d1,q=c+v/v.len()*d2;
-        return {1,{(p+q)/2,p.dis(q)/2},null_l};
+        return Circle{(p+q)/2,p.dis(q)/2};
     }
 };
 
 // 圆与多边形面积交
-long double area_inter(const Circle &circ,const Polygon &poly)
+T area_inter(const Circle &circ,const Polygon &poly)
 {
     const auto cal=[](const Circle &circ,const Point &a,const Point &b)
     {
@@ -461,36 +453,36 @@ long double area_inter(const Circle &circ,const Polygon &poly)
         {
             const auto t=circ.inter(ab);
             const Point p=t.size()==1?t[0]:t[1];
-            const long double ans=((a-circ.c)^(p-circ.c))/2;
-            const long double th=(p-circ.c).ang(b-circ.c);
-            const long double d=circ.r*circ.r*th/2;
+            const T ans=((a-circ.c)^(p-circ.c))/2;
+            const T th=(p-circ.c).ang(b-circ.c);
+            const T d=circ.r*circ.r*th/2;
             if ((a-circ.c).toleft(b-circ.c)==1) return ans+d;
             return ans-d;
         }
         if (!ina && inb)
         {
             const Point p=circ.inter(ab)[0];
-            const long double ans=((p-circ.c)^(b-circ.c))/2;
-            const long double th=(a-circ.c).ang(p-circ.c);
-            const long double d=circ.r*circ.r*th/2;
+            const T ans=((p-circ.c)^(b-circ.c))/2;
+            const T th=(a-circ.c).ang(p-circ.c);
+            const T d=circ.r*circ.r*th/2;
             if ((a-circ.c).toleft(b-circ.c)==1) return ans+d;
             return ans-d;
         }
         const auto p=circ.inter(ab);
         if (p.size()==2 && Segment{a,b}.dis(circ.c)<=circ.r+eps)
         {
-            const long double ans=((p[0]-circ.c)^(p[1]-circ.c))/2;
-            const long double th1=(a-circ.c).ang(p[0]-circ.c),th2=(b-circ.c).ang(p[1]-circ.c);
-            const long double d1=circ.r*circ.r*th1/2,d2=circ.r*circ.r*th2/2;
+            const T ans=((p[0]-circ.c)^(p[1]-circ.c))/2;
+            const T th1=(a-circ.c).ang(p[0]-circ.c),th2=(b-circ.c).ang(p[1]-circ.c);
+            const T d1=circ.r*circ.r*th1/2,d2=circ.r*circ.r*th2/2;
             if ((a-circ.c).toleft(b-circ.c)==1) return ans+d1+d2;
             return ans-d1-d2;
         }
-        const long double th=(a-circ.c).ang(b-circ.c);
+        const T th=(a-circ.c).ang(b-circ.c);
         if ((a-circ.c).toleft(b-circ.c)==1) return circ.r*circ.r*th/2;
         return -circ.r*circ.r*th/2;
     };
 
-    long double ans=0;
+    T ans=0;
     for (size_t i=0;i<poly.p.size();i++)
     {
         const Point a=poly.p[i],b=poly.p[poly.nxt(i)];
@@ -530,7 +522,7 @@ Convex convexhull(vector<Point> p)
 // 半平面交
 // 排序增量法，复杂度 O(nlogn)
 // 输入与返回值都是用直线表示的半平面集合
-vector<Line> halfinter(vector<Line> l, const point_t lim=1e9)
+vector<Line> halfinter(vector<Line> l, const T lim=1e9)
 {
     const auto check=[](const Line &a,const Line &b,const Line &c){return a.toleft(b.inter(c))<0;};
     // 无精度误差的方法，但注意取值范围会扩大到三次方
@@ -559,12 +551,12 @@ vector<Line> halfinter(vector<Line> l, const point_t lim=1e9)
 // 点集形成的最小最大三角形
 // 极角序扫描线，复杂度 O(n^2logn)
 // 最大三角形问题可以使用凸包与旋转卡壳做到 O(n^2)
-pair<point_t,point_t> minmax_triangle(const vector<Point> &vec)
+pair<T,T> minmax_triangle(const vector<Point> &vec)
 {
     if (vec.size()<=2) return {0,0};
     vector<pair<int,int>> evt;
     evt.reserve(vec.size()*vec.size());
-    point_t maxans=0,minans=INF;
+    T maxans=0,minans=INF;
     for (size_t i=0;i<vec.size();i++)
     {
         for (size_t j=0;j<vec.size();j++)
@@ -577,7 +569,7 @@ pair<point_t,point_t> minmax_triangle(const vector<Point> &vec)
     sort(evt.begin(),evt.end(),[&](const pair<int,int> &u,const pair<int,int> &v)
     {
         const Point du=vec[u.second]-vec[u.first],dv=vec[v.second]-vec[v.first];
-        return argcmp()({du.y,-du.x},{dv.y,-dv.x});
+        return Argcmp()({du.y,-du.x},{dv.y,-dv.x});
     });
     vector<size_t> vx(vec.size()),pos(vec.size());
     for (size_t i=0;i<vec.size();i++) vx[i]=i;
@@ -598,16 +590,15 @@ pair<point_t,point_t> minmax_triangle(const vector<Point> &vec)
 
 // 平面最近点对
 // 扫描线，复杂度 O(nlogn)
-point_t closest_pair(vector<Point> points)
+T closest_pair(vector<Point> points)
 {
     sort(points.begin(),points.end());
     const auto cmpy=[](const Point &a,const Point &b){if (abs(a.y-b.y)<=eps) return a.x<b.x-eps; return a.y<b.y-eps;};
     multiset<Point,decltype(cmpy)> s{cmpy};
-    point_t ans=INF;
+    T ans=INF;
     for (size_t i=0,l=0;i<points.size();i++)
     {
-        const point_t sqans=sqrtl(ans)+1;  // 整数情况
-        // const point_t sqans=sqrtl(ans)+1;  // 浮点数情况
+        const T sqans=sqrtl(ans)+1;
         while (l<i && points[i].x-points[l].x>=sqans) s.erase(s.find(points[l++]));
         for (auto it=s.lower_bound(Point{-INF,points[i].y-sqans});it!=s.end()&&it->y-points[i].y<=sqans;it++)
         {
@@ -623,7 +614,7 @@ point_t closest_pair(vector<Point> points)
 bool segs_inter(const vector<Segment> &segs)
 {
     if (segs.empty()) return false;
-    using seq_t=tuple<point_t,int,Segment>;
+    using seq_t=tuple<T,int,Segment>;  // x坐标 出入点 线段
     const auto seqcmp=[](const seq_t &u, const seq_t &v)
     {
         const auto [u0,u1,u2]=u;
@@ -639,7 +630,7 @@ bool segs_inter(const vector<Segment> &segs)
         seq.push_back({seg.b.x,1,seg});
     }
     sort(seq.begin(),seq.end(),seqcmp);
-    point_t x_now;
+    T x_now;
     auto cmp=[&](const Segment &u, const Segment &v)
     {
         if (abs(u.a.x-u.b.x)<=eps || abs(v.a.x-v.b.x)<=eps) return u.a.y<v.a.y-eps;
@@ -668,7 +659,7 @@ bool segs_inter(const vector<Segment> &segs)
 // 多边形面积并
 // 轮廓积分，复杂度 O(n^2logn)，n为边数
 // ans[i] 表示被至少覆盖了 i+1 次的区域的面积
-vector<long double> area_union(const vector<Polygon> &polys)
+vector<T> area_union(const vector<Polygon> &polys)
 {
     const size_t siz=polys.size();
     vector<vector<pair<Point,Point>>> segs(siz);
@@ -721,10 +712,10 @@ vector<long double> area_union(const vector<Polygon> &polys)
             cut_edge(ei,i);
         }
     }
-    vector<long double> ans(siz);
+    vector<T> ans(siz);
     for (size_t i=0;i<siz;i++)
     {
-        long double sum=0;
+        T sum=0;
         sort(segs[i].begin(),segs[i].end());
         int cnt=0;
         for (size_t j=0;j<segs[i].size();j++)
@@ -740,10 +731,10 @@ vector<long double> area_union(const vector<Polygon> &polys)
 // 圆面积并
 // 轮廓积分，复杂度 O(n^2logn)
 // ans[i] 表示被至少覆盖了 i+1 次的区域的面积
-vector<long double> area_union(const vector<Circle> &circs)
+vector<T> area_union(const vector<Circle> &circs)
 {
     const size_t siz=circs.size();
-    using arc_t=tuple<Point,long double,long double,long double>;
+    using arc_t=tuple<Point,T,T,T>;
     vector<vector<arc_t>> arcs(siz);
     const auto eq=[](const arc_t &u,const arc_t &v)
     {
@@ -754,7 +745,7 @@ vector<long double> area_union(const vector<Circle> &circs)
 
     auto cut_circ=[&](const Circle &ci,const size_t i)
     {
-        vector<pair<long double,int>> evt;
+        vector<pair<T,int>> evt;
         evt.push_back({-PI,0}); evt.push_back({PI,0});
         int init=0;
         for (size_t j=0;j<circs.size();j++)
@@ -767,7 +758,7 @@ vector<long double> area_union(const vector<Circle> &circs)
             if (inters.size()==2)
             {
                 const Point dl=inters[0]-ci.c,dr=inters[1]-ci.c;
-                long double argl=atan2l(dl.y,dl.x),argr=atan2l(dr.y,dr.x);
+                T argl=atan2l(dl.y,dl.x),argr=atan2l(dr.y,dr.x);
                 if (abs(argl+PI)<=eps) argl=PI;
                 if (abs(argr+PI)<=eps) argr=PI;
                 if (argl>argr+eps)
@@ -804,10 +795,10 @@ vector<long double> area_union(const vector<Circle> &circs)
         const auto &ci=circs[i];
         cut_circ(ci,i);
     }
-    vector<long double> ans(siz);
+    vector<T> ans(siz);
     for (size_t i=0;i<siz;i++)
     {
-        long double sum=0;
+        T sum=0;
         sort(arcs[i].begin(),arcs[i].end());
         int cnt=0;
         for (size_t j=0;j<arcs[i].size();j++)
