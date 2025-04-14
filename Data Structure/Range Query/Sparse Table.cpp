@@ -1,15 +1,15 @@
 #include <bits/stdc++.h>
 
-template <typename T, class cmp = std::less<T>>
+template <typename T, typename Cmp = std::less<T>>
 struct SparseTable
 {
     std::vector<std::vector<T>> v;
+    Cmp cmp;
 
-    SparseTable(const std::vector<T> &a) : v(a.size())
+    SparseTable(const std::vector<T> &a, Cmp cmp = Cmp()) : v(a.size()), cmp(cmp)
     {
         int n = a.size();
         int K = std::bit_width(unsigned(n)) - 1;
-        // int K = sizeof(n) * CHAR_BIT - __builtin_clz(n) - 1;
         for (int i = 0; i < n; i++)
         {
             v[i].resize(K + 1);
@@ -19,7 +19,7 @@ struct SparseTable
         {
             for (int i = 0; i + (1 << k) - 1 < n; i++)
             {
-                v[i][k] = std::min(v[i][k - 1], v[i + (1 << (k - 1))][k - 1], cmp());
+                v[i][k] = std::min(v[i][k - 1], v[i + (1 << (k - 1))][k - 1], cmp);
             }
         }
     }
@@ -27,8 +27,7 @@ struct SparseTable
     T query(int l, int r) const
     {
         int k = std::bit_width(unsigned(r - l + 1)) - 1;
-        // int k = sizeof(r - l + 1) * CHAR_BIT - __builtin_clz(r - l + 1) - 1;
-        return std::min(v[l][k], v[r - (1 << k) + 1][k], cmp());
+        return std::min(v[l][k], v[r - (1 << k) + 1][k], cmp);
     }
 };
 

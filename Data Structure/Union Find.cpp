@@ -2,25 +2,25 @@
 
 struct UnionFind
 {
-    std::vector<int> f, siz;
+    std::vector<int> fa, siz;
 
-    UnionFind(int n) : f(n), siz(n, 1)
+    UnionFind(int n) : fa(n), siz(n, 1)
     {
-        std::iota(f.begin(), f.end(), 0);
+        std::iota(fa.begin(), fa.end(), 0);
     }
 
     int find(int u)
     {
-        return f[u] == u ? u : f[u] = find(f[u]);
+        return fa[u] == u ? u : fa[u] = find(fa[u]);
     }
 
     void merge(int u, int v)
     {
-        int fu = find(u), fv = find(v);
-        if (fu == fv) return;
-        if (siz[fu] > siz[fv]) std::swap(fu, fv);
-        f[fu] = fv;
-        siz[fv] += siz[fu];
+        u = find(u); v = find(v);
+        if (u == v) return;
+        if (siz[u] > siz[v]) std::swap(u, v);
+        fa[u] = v;
+        siz[v] += siz[u];
     }
 };
 
