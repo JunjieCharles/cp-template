@@ -1,29 +1,34 @@
 #include <bits/stdc++.h>
+using namespace std;
 
 template <typename T>
-struct FenwickTree
-{
+struct FenwickTree {
     int n;
-    std::vector<T> v;
+    vector<T> v;
 
-    FenwickTree(const int n) : n(n), v(n) {}
+    FenwickTree(int n) : n(n), v(n) {}
+
+    void build(const vector<T>& a)
+    {
+        for (int i = 0; i < n; i++) {
+        	v[i] += a[i];
+            int j = i | (i + 1); 
+            if (j < n) v[j] += v[i];
+        }
+    }
 
     void update(int p, const T add)
     {
-        while (p < n)
-        {
+        for (; p < n; p |= p + 1) {
             v[p] += add;
-            p += (p + 1) & -(p + 1);
         }
     }
 
     T query(int p) const
     {
         T re = 0;
-        while (p >= 0)
-        {
+        for (; p >= 0; p = (p & (p + 1)) - 1) {
             re += v[p];
-            p -= (p + 1) & -(p + 1);
         }
         return re;
     }
@@ -37,28 +42,23 @@ struct FenwickTree
 // https://www.luogu.com.cn/problem/P3374
 int main()
 {
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
     int n, m;
-    std::cin >> n >> m;
-    FenwickTree<int> tr(n + 1);
-    for (int i = 0; i < n; i++)
-    {
-        int x;
-        std::cin >> x;
-        tr.update(i + 1, x);
+    cin >> n >> m;
+    vector<long long> a(n + 1, 0);
+    for (int i = 1; i <= n; i++) {
+        cin >> a[i];
     }
-    for (int i = 0; i < m; i++)
-    {
+    FenwickTree<long long> tr(n + 1);
+    tr.build(a);
+    for (int i = 0; i < m; i++) {
         int z, x, y;
-        std::cin >> z >> x >> y;
-        if (z == 1)
-        {
+        cin >> z >> x >> y;
+        if (z == 1) {
             tr.update(x, y);
-        }
-        else
-        {
-            std::cout << tr.query(x, y) << '\n';
+        } else {
+            cout << tr.query(x, y) << '\n';
         }
     }
 }
