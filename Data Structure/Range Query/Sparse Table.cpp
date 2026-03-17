@@ -33,22 +33,46 @@ struct SparseTable {
     }
 };
 
-// https://www.luogu.com.cn/problem/P3865
+// https://www.luogu.com.cn/problem/P3379
 int main()
 {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    int n, m;
-    cin >> n >> m;
-    vector<int> a(n + 1);
-    for (int i = 1; i <= n; i++) {
-        cin >> a[i];
+    
+    int n, m, s;
+    cin >> n >> m >> s;
+    vector<vector<int>> e(n + 1);
+    for (int i = 0; i < n - 1; i++) {
+        int u, v;
+        cin >> u >> v;
+        e[u].push_back(v);
+        e[v].push_back(u);
     }
-    SparseTable<int, greater<int>> st(n + 1);
-    st.build(a);
+    
+    vector<int> dfn(n + 1), dfa(n + 1);
+    int clk = 1;
+    auto dfs = [&](auto &dfs, int u, int f) -> void {
+        dfn[u] = clk++;
+        dfa[dfn[u]] = f;
+        for (int v : e[u]) {
+            if (v == f) continue;
+            dfs(dfs, v, u);
+        }
+    };
+    dfs(dfs, s, 0);
+    
+    auto cmp = [&](int a, int b) { return dfn[a] < dfn[b]; };
+    SparseTable<int, decltype(cmp)> st(n + 1, cmp);
+    st.build(dfa);
+    auto lca = [&](int u, int v) -> int {
+        if (u == v) return u;
+        if (dfn[u] > dfn[v]) swap(u, v);
+        return st.query(dfn[u] + 1, dfn[v]);
+    };
+    
     for (int i = 0; i < m; i++) {
-        int l, r;
-        cin >> l >> r;
-        cout << st.query(l, r) << '\n';
+        int u, v;
+        cin >> u >> v;
+        cout << lca(u, v) << "\n";
     }
 }
