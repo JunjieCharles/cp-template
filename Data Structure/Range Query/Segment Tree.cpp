@@ -73,18 +73,18 @@ struct SegmentTree {
 
 // https://www.luogu.com.cn/problem/P3373
 template <int MOD>
-struct ModInt {
+struct Mint {
     int x;
-    ModInt(int x = 0) : x(x) {}
-    ModInt operator+(const ModInt &u) const { return x + u.x >= MOD ? x + u.x - MOD : x + u.x; }
-    ModInt operator-(const ModInt &u) const { return x - u.x < 0 ? x - u.x + MOD : x - u.x; }
-    ModInt operator*(const ModInt &u) const { return int(1ll * x * u.x % MOD); }
+    Mint(int x = 0) : x(x) {}
+    Mint operator+(const Mint &u) const { return x + u.x >= MOD ? x + u.x - MOD : x + u.x; }
+    Mint operator-(const Mint &u) const { return x - u.x < 0 ? x - u.x + MOD : x - u.x; }
+    Mint operator*(const Mint &u) const { return int(1ll * x * u.x % MOD); }
 };
 
 template <int MOD>
 void run(int n, int q)
 {
-    SegmentTree<ModInt<MOD>> tr(n);
+    SegmentTree<Mint<MOD>> tr(n);
     
     vector<int> a(n + 1);
     for (int i = 1; i <= n; i++) {
