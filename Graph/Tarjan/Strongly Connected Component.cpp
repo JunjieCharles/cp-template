@@ -24,12 +24,12 @@ int main()
 	vector<int> scc(n + 1, -1);
 	vector<int> st;
 	st.reserve(n);
-	auto dfs = [&](auto &dfs, int u, int f) -> void {
+	auto dfs = [&](auto &dfs, int u) -> void {
 		dfn[u] = low[u] = ++clk;
 		st.push_back(u);
 		for (int v : e[u]) {
 			if (dfn[v] == -1) {
-				dfs(dfs, v, u);
+				dfs(dfs, v);
 				low[u] = min(low[u], low[v]);
 			} else if (scc[v] == -1) {
 				low[u] = min(low[u], dfn[v]);
@@ -47,7 +47,7 @@ int main()
 	};
 	for (int u = 1; u <= n; u++) {
 		if (dfn[u] == -1) {
-			dfs(dfs, u, -1);
+			dfs(dfs, u);
 		}
 	}
 	
