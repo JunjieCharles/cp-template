@@ -22,7 +22,7 @@ int main()
 	auto dfs = [&](auto &dfs, int u, int f) -> void {
 		dfn[u] = low[u] = clk++;
 		for (int v : e[u]) {
-			if (v == f) continue;
+			if (v == f) continue;  // note: parallel edges
 			if (dfn[v] == -1) {
 				dfs(dfs, v, u);
 				if (low[v] > dfn[u]) {
@@ -34,7 +34,11 @@ int main()
 			}
 		}
 	};
-	dfs(dfs, 1, 0);
+	for (int u = 1; u <= n; u++) {
+		if (dfn[u] == -1) {
+			dfs(dfs, u, -1);
+		}
+	}
 	
 	sort(bridges.begin(), bridges.end());
 	for (auto uv : bridges) {
