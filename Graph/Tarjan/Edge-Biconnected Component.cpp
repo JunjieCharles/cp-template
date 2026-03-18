@@ -2,7 +2,7 @@
 using namespace std;
 using Edge = pair<int ,int>;
 
-// https://www.luogu.com.cn/problem/P2860
+// https://www.luogu.com.cn/problem/P8436
 int main()
 {
 	ios::sync_with_stdio(false);
@@ -53,21 +53,17 @@ int main()
 		}
 	}
 	
-	vector<int> deg(nEbcc + 1, 0);
+	vector<vector<int>> ans(nEbcc + 1);
 	for (int u = 1; u <= n; u++) {
-	    for (auto edge : e[u]) {
-	        int v = edge.first;
-	        if (ebcc[u] != ebcc[v]) {
-	            deg[ebcc[u]]++;
-	        }
-	    }
+		ans[ebcc[u]].push_back(u);
 	}
-	int nLeaf = 0;
-	for (int u = 1; u <= nEbcc; u++) {
-        if (deg[u] == 1) {
-            nLeaf++;
-        }
-    }
 	
-	cout << (nLeaf + 1) / 2 << '\n';
+	cout << nEbcc << '\n';
+	for (int i = 1; i <= nEbcc; i++) {
+		cout << ans[i].size() << ' ';
+		for (int u : ans[i]) {
+			cout << u << ' ';
+		}
+		cout << '\n';
+	}
 }
