@@ -26,11 +26,11 @@ int main()
 			if (v == f) continue;  
 			if (dfn[v] == -1) {
 				dfs(dfs, v, u);
+				low[u] = min(low[u], low[v]);
+				son++;
 				if (f != -1 && low[v] >= dfn[u]) {
 					isCut[u] = 1;
 				}
-				low[u] = min(low[u], low[v]);
-				son++;
 			} else {
 				low[u] = min(low[u], dfn[v]);
 			}
