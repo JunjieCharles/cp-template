@@ -16,11 +16,11 @@ int main()
 		e[v].push_back(u);
 	}
 	
-	int clk = 1;
+	int clk = 0;
 	vector<int> dfn(n + 1, -1), low(n + 1, -1);
 	vector<int> isCut(n + 1);
 	auto dfs = [&](auto &dfs, int u, int f) -> void {
-		dfn[u] = low[u] = clk++;
+		dfn[u] = low[u] = ++clk;
 		int son = 0;
 		for (int v : e[u]) {
 			if (v == f) continue;  
