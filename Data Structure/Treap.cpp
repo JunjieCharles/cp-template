@@ -16,8 +16,8 @@ struct Treap {
     int root = -1;
 
     Treap(int n) { nodes.reserve(n); }
-    int siz(int u) const { return u == -1 ? 0 : nodes[u].siz; }
-    void maintain(int u) { nodes[u].siz = siz(nodes[u].lson) + siz(nodes[u].rson) + nodes[u].cnt; }
+    inline int siz(int u) const { return u == -1 ? 0 : nodes[u].siz; }
+    inline void maintain(int u) { nodes[u].siz = siz(nodes[u].lson) + siz(nodes[u].rson) + nodes[u].cnt; }
 
     int newnode(T x)
     {
