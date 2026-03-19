@@ -1,10 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <char C = 'a', int S = 26>
+template <char C = 'a', int S = 26, typename T = int>
 struct Trie {
 	vector<vector<int>> e;
-	vector<int> val;
+	vector<T> val;
 	
 	Trie() : e(1, vector<int>(S, -1)), val(1) {}
 
@@ -15,7 +15,7 @@ struct Trie {
 			int i = c - C;
 			if (e[u][i] == -1) {
 				e.emplace_back(S, -1);
-				val.push_back(0);
+				val.emplace_back();
 				e[u][i] = (int)e.size() - 1;
 			}
 			u = e[u][i];
@@ -23,7 +23,7 @@ struct Trie {
 		}
 	}
 	
-	int query(const string &s) const
+	T query(const string &s) const
 	{
 		int u = 0;
 		for (char c : s) {
