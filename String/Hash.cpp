@@ -33,7 +33,6 @@ struct Hash {
     Mint<M> query(int l = -1, int r = -1) const
     {
     	if (l == -1 && r == -1) return h[n - 1];
-    	if (r == -1) return h[l];
         if (l == 0) return h[r];
         return h[r] - h[l - 1] * powP[r - l + 1];
     }
