@@ -16,13 +16,15 @@ struct Mint {
 template <int P, int M>
 struct Hash {
 	int n;
-    vector<Mint<M>> powP, h;
+	static vector<Mint<M>> powP;
+    vector<Mint<M>> h;
 
-    Hash(const string &s) : n((int)s.size()), powP(n + 1), h(n)
+    Hash(const string &s) : n((int)s.size()), h(n)
     {
-        powP[0] = 1;
-        for (int i = 0; i < n; i++)
-        {
+        while ((int)powP.size() <= n) {
+            powP.push_back(powP.back() * P);
+        }
+        for (int i = 0; i < n; i++) {
             powP[i + 1] = powP[i] * P;
             h[i] = (i == 0) ? s[i] : h[i - 1] * P + s[i];
         }
@@ -31,10 +33,14 @@ struct Hash {
     Mint<M> query(int l = -1, int r = -1) const
     {
     	if (l == -1 && r == -1) return h[n - 1];
+    	if (r == -1) return h[l];
         if (l == 0) return h[r];
         return h[r] - h[l - 1] * powP[r - l + 1];
     }
 };
+
+template <int P, int M>
+vector<Mint<M>> Hash<P, M>::powP{1};
 
 // https://www.luogu.com.cn/problem/P3370
 int main()
