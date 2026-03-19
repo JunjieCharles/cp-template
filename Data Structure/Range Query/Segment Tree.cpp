@@ -72,19 +72,19 @@ struct SegmentTree {
 };
 
 // https://www.luogu.com.cn/problem/P3373
-template <int MOD>
+template <int M>
 struct Mint {
     int x;
     Mint(int x = 0) : x(x) {}
-    Mint operator+(const Mint &u) const { return x + u.x >= MOD ? x + u.x - MOD : x + u.x; }
-    Mint operator-(const Mint &u) const { return x - u.x < 0 ? x - u.x + MOD : x - u.x; }
-    Mint operator*(const Mint &u) const { return int(1ll * x * u.x % MOD); }
+    Mint operator+(const Mint &u) const { return x + u.x >= M ? x + u.x - M : x + u.x; }
+    Mint operator-(const Mint &u) const { return x - u.x < 0 ? x - u.x + M : x - u.x; }
+    Mint operator*(const Mint &u) const { return int(1ll * x * u.x % M); }
 };
 
-template <int MOD>
+template <int M>
 void run(int n, int q)
 {
-    SegmentTree<Mint<MOD>> tr(n);
+    SegmentTree<Mint<M>> tr(n);
     
     vector<int> a(n + 1);
     for (int i = 1; i <= n; i++) {
