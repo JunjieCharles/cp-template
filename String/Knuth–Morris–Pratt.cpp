@@ -5,10 +5,10 @@ vector<int> kmp(const string &s)
 {
 	int n = (int)s.size();
 	vector<int> p(n);
-	for (int i = 1, j = 0; i < n; i++) {
-		while (j > 0 && s[i] != s[j]) j = p[j - 1];
-		if (s[i] == s[j]) j++;
-		p[i] = j;
+	for (int i = 1, j = -1; i < n; i++) {
+		while (j >= 0 && s[i] != s[j + 1]) j = p[j] - 1;
+		if (s[i] == s[j + 1]) j++;
+		p[i] = j + 1;
 	}
 	return p;
 }
