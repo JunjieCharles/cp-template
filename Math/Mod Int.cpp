@@ -37,14 +37,15 @@ struct Mint {
 
 // https://www.luogu.com.cn/problem/P2613
 constexpr int M = 19260817;
+using T = Mint<M>;
 
 int main()
 {
 	ios::sync_with_stdio(false);
     cin.tie(nullptr);
     
-    auto str2mint = [](const string &s) -> Mint<M> {
-    	Mint<M> res = 0;
+    auto str2val = [](const string &s) -> T {
+    	T res = 0;
     	for (char c : s) {
     		res = res * 10 + (c - '0');
     	}
@@ -53,7 +54,7 @@ int main()
     
     string sa, sb;
     cin >> sa >> sb;
-    auto a = str2mint(sa);
-    auto b = str2mint(sb);
+    auto a = str2val(sa);
+    auto b = str2val(sb);
     cout << (int)(a / b) << '\n';
 }
