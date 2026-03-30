@@ -50,9 +50,9 @@ int main()
     }
     
     vector<int> dfn(n + 1), dfa(n + 1);
-    int clk = 1;
+    int clk = 0;
     auto dfs = [&](auto &dfs, int u, int f) -> void {
-        dfn[u] = clk++;
+        dfn[u] = ++clk;
         dfa[dfn[u]] = f;
         for (int v : e[u]) {
             if (v == f) continue;
