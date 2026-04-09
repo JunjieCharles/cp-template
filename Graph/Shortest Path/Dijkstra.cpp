@@ -26,10 +26,10 @@ int main()
         q.emplace(0, s);
         
         while (!q.empty()) {
-            T x = q.top().first;
-            int u = q.top().second;
+            T d; int u;
+            tie(d, u) = q.top();
             q.pop();
-            if (x > dis[u]) continue;
+            if (d > dis[u]) continue;
             
             for (auto &edge : e[u]) {
             	int v = edge.first;
